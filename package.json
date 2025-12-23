@@ -7,7 +7,8 @@
     "dev": "concurrently \"npm run dev:frontend\" \"npm run api\"",
     "dev:frontend": "vite",
     "api": "nodemon --watch api api/index.js",
-    "build": "vite build",
+    "build": "cross-env NODE_OPTIONS=--max-old-space-size=4096 vite build",
+    "build:debug": "cross-env NODE_OPTIONS=--max-old-space-size=4096 vite build --debug",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -30,6 +31,7 @@
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
     "nodemon": "^3.1.11",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
