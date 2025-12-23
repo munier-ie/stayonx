@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => {
       preview: {
         port: 3000,
         host: '0.0.0.0',
+        allowedHosts: ['stayonx.xyz', 'www.stayonx.xyz', 'api.stayonx.xyz'],
       },
       plugins: [react()],
       define: {
