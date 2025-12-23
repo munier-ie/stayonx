@@ -9,7 +9,7 @@
     "api": "nodemon --watch api api/index.js",
     "build": "cross-env NODE_OPTIONS=--max-old-space-size=4096 vite build",
     "build:debug": "cross-env NODE_OPTIONS=--max-old-space-size=4096 vite build --debug",
-    "preview": "vite preview"
+    "preview": "vite preview --port 3000"
   },
   "dependencies": {
     "@fontsource/montserrat": "^5.2.8",
