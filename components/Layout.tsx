@@ -203,7 +203,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               className="flex items-center gap-3 cursor-pointer"
               onClick={() => navigate("/")}
             >
-              <img src="/logo1.png" alt="StayOnX" className="w-8 h-8 object-contain" />
+              <img src="/logo.png" alt="StayOnX" className="w-8 h-8 object-contain" />
               <span className="font-semibold text-gray-900 tracking-tight text-lg">
                 StayOnX
               </span>
@@ -318,7 +318,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Mobile App Header */}
       <div className="md:hidden fixed top-0 w-full bg-white/90 backdrop-blur-md border-b border-gray-200 z-30 px-4 py-3 flex justify-between items-center">
         <div className="flex items-center gap-2" onClick={() => navigate("/")}>
-          <img src="/logo1.png" alt="StayOnX" className="w-8 h-8 object-contain" />
+          <img src="/logo.png" alt="StayOnX" className="w-8 h-8 object-contain" />
           <span className="font-semibold text-gray-900 tracking-tight text-lg">
             StayOnX
           </span>
@@ -348,7 +348,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           className="hidden md:flex items-center gap-3 px-4 mb-10 cursor-pointer"
           onClick={() => navigate("/")}
         >
-          <img src="/logo1.png" alt="StayOnX" className="w-10 h-10 object-contain" />
+          <img src="/logo.png" alt="StayOnX" className="w-10 h-10 object-contain" />
           <span className="font-semibold text-gray-900 tracking-tight text-xl">
             StayOnX
           </span>
