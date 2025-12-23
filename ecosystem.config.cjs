@@ -2,17 +2,16 @@ module.exports = {
   apps: [
     {
       name: 'stayonx-frontend',
-      script: 'node_modules/next/dist/bin/next',
-      args: 'start -p 3000',
-      cwd: '/var/www/stayonx/frontend',
+      script: 'npm',
+      args: 'run preview',
       env: {
-        NODE_ENV: 'production'
+        NODE_ENV: 'production',
+        PORT: 3000
       }
     },
     {
       name: 'stayonx-backend',
       script: 'api/index.js',
-      cwd: '/var/www/stayonx/backend',
       env: {
         NODE_ENV: 'production',
         PORT: 3030
