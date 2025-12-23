@@ -3,10 +3,10 @@ module.exports = {
     {
       name: 'stayonx-frontend',
       script: 'npm',
-      args: 'run preview',
+      args: 'run preview -- --host 0.0.0.0 --port 4173',
+      cwd: '/home/ubuntu/stayonx/frontend',
       env: {
-        NODE_ENV: 'production',
-        PORT: 3000
+        NODE_ENV: 'production'
       }
     },
     {
