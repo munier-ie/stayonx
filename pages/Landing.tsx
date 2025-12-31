@@ -302,17 +302,14 @@ export const Landing: React.FC = () => {
                 </div>
 
                 {/* Video Placeholder */}
-                <div className="rounded-xl overflow-hidden relative aspect-video bg-gray-50 border border-gray-100 shadow-inner group cursor-pointer">
-                    <img 
-                        src="/thumbnail.png" 
-                        alt="Dashboard Preview" 
-                        className="absolute inset-0 w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors flex items-center justify-center z-30">
-                        <div className="w-20 h-20 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-xl transform group-hover:scale-110 transition-all duration-300">
-                            <Play className="w-8 h-8 text-gray-900 ml-1 fill-gray-900" />
-                        </div>
-                    </div>
+                <div className="rounded-xl overflow-hidden relative aspect-video bg-gray-50 border border-gray-100 shadow-inner group">
+                    <video 
+                        src="/stayonx-intro.mp4" 
+                        controls
+                        className="w-full h-full object-cover"
+                    >
+                        Your browser does not support the video tag.
+                    </video>
                 </div>
              </div>
           </div>

@@ -93,8 +93,8 @@ app.get("/api/ads/config", async (req, res) => {
         title: 'Advertise your brand here',
         description: 'Reach thousands of engaged users with a native, non-intrusive placement.',
         cta_text: 'Secure your slot',
-        cta_url: 'https://stayonx.app/advertise',
-        image_url: 'https://stayonx.app/assets/ad-default.png'
+        cta_url: 'https://stayonx.xyz/advertise',
+        image_url: 'https://stayonx.xyz/assets/ad-default.png'
       });
     }
     
