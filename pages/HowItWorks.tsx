@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BentoCard } from '../components/BentoCard';
 import { Button } from '../components/Button';
+import { HowItWorksDemo } from '../components/HowItWorksDemo';
 import { Download, Users, TrendingUp } from 'lucide-react';
 
 export const HowItWorks: React.FC = () => {
@@ -14,56 +15,73 @@ export const HowItWorks: React.FC = () => {
           Consistency is a <br/><span className="font-normal">team sport.</span>
         </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 1: Install */}
-          <BentoCard className="min-h-[400px] flex flex-col justify-between relative bg-white border-gray-200">
-             <div className="flex-1 flex items-center justify-center p-8 bg-gray-50/50 m-2 rounded-xl border border-dashed border-gray-200">
-                {/* Wireframe Browser Illustration */}
-                <div className="w-48 h-32 bg-white border-2 border-gray-200 rounded-lg shadow-sm flex flex-col overflow-hidden">
-                    <div className="h-4 border-b border-gray-200 flex items-center gap-1 px-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
-                        <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
-                    </div>
-                    <div className="flex-1 relative">
-                        <div className="absolute bottom-2 right-2 w-12 h-6 bg-gray-900 rounded-full opacity-10"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+            
+            {/* Left: Step Breakdown */}
+            <div className="lg:col-span-5 space-y-12">
+                {/* Step 1 */}
+                <div className="relative pl-8 border-l border-gray-200">
+                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-gray-200 border-4 border-white"></div>
+                    <div className="space-y-2">
+                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Step 1</span>
+                        <h3 className="text-xl font-medium text-gray-900">Install & Pin</h3>
+                        <p className="text-gray-500 leading-relaxed">
+                            Add StayOnX to Chrome. Pin it to your toolbar for easy access. It lives quietly inside your X (Twitter) interface, so you never have to switch context.
+                        </p>
                     </div>
                 </div>
-             </div>
-             <div className="p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">1. Install & Connect</h3>
-                <p className="text-sm text-gray-500">Add the extension to Chrome. It overlays quietly on X to track your daily actions automatically.</p>
-             </div>
-          </BentoCard>
 
-          {/* Card 2: Spaces */}
-          <BentoCard className="min-h-[400px] flex flex-col justify-between relative bg-white border-gray-200">
-             <div className="flex-1 flex items-center justify-center p-8 bg-gray-50/50 m-2 rounded-xl border border-dashed border-gray-200">
-                <div className="flex -space-x-4">
-                    {[1, 2, 3].map(i => (
-                        <div key={i} className="w-16 h-16 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center z-10">
-                            <Users className="w-6 h-6 text-gray-400" />
-                        </div>
-                    ))}
+                {/* Step 2 */}
+                <div className="relative pl-8 border-l border-gray-200">
+                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-gray-200 border-4 border-white"></div>
+                    <div className="space-y-2">
+                         <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Step 2</span>
+                        <h3 className="text-xl font-medium text-gray-900">Join a Space & Lock In</h3>
+                        <p className="text-gray-500 leading-relaxed">
+                            Join a themed Space (e.g., "Designers", "Indie Hackers") or create your own. 
+                            <strong className="text-gray-900 block mt-2">The Catch: You must "Lock In" your commitment.</strong>
+                            Once you join, you commit to hitting your daily goals (e.g., 5 replies/day) for a set duration (minimum 7 days).
+                        </p>
+                    </div>
                 </div>
-             </div>
-             <div className="p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">2. Join a Space</h3>
-                <p className="text-sm text-gray-500">Create or join a team. Set shared goals. If one person misses a day, the team streak breaks.</p>
-             </div>
-          </BentoCard>
 
-          {/* Card 3: Compete */}
-          <BentoCard className="min-h-[400px] flex flex-col justify-between relative bg-white border-gray-200">
-             <div className="flex-1 flex items-end justify-center p-8 bg-gray-50/50 m-2 rounded-xl border border-dashed border-gray-200 gap-2">
-                <div className="w-8 h-12 bg-gray-200 rounded-t-sm"></div>
-                <div className="w-8 h-20 bg-gray-300 rounded-t-sm"></div>
-                <div className="w-8 h-32 bg-gray-900 rounded-t-sm shadow-lg"></div>
-             </div>
-             <div className="p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">3. Climb the Leaderboard</h3>
-                <p className="text-sm text-gray-500">Compete against other spaces. Earn badges for volume, consistency, and quality.</p>
-             </div>
-          </BentoCard>
+                {/* Step 3 */}
+                <div className="relative pl-8 border-l border-gray-900">
+                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-gray-900 border-4 border-white"></div>
+                    <div className="space-y-2">
+                         <span className="text-xs font-bold text-gray-900 uppercase tracking-widest">Step 3</span>
+                        <h3 className="text-xl font-medium text-gray-900">Don't Break the Chain</h3>
+                        <p className="text-gray-500 leading-relaxed">
+                            Every day you hit your goal, your streak increases.
+                            <br/>
+                            <span className="inline-block bg-red-50 text-red-600 px-2 py-1 rounded text-sm font-medium mt-2 border border-red-100">
+                                Warning: If you miss a single day, you (and your space) go back to zero.
+                            </span>
+                        </p>
+                    </div>
+                </div>
+
+                {/* Step 4 */}
+                <div className="relative pl-8 border-l border-gray-200">
+                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-gray-200 border-4 border-white"></div>
+                    <div className="space-y-2">
+                         <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Step 4</span>
+                        <h3 className="text-xl font-medium text-gray-900">Climb the Leaderboard</h3>
+                        <p className="text-gray-500 leading-relaxed">
+                            Compete against other spaces. The most consistent teams rise to the top. Earn badges, gain visibility, and build a habit that sticks.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Right: Live Demo */}
+            <div className="lg:col-span-7 sticky top-24">
+                 <div className="relative">
+                     <div className="absolute -inset-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-3xl opacity-50 blur-2xl"></div>
+                     <HowItWorksDemo />
+                 </div>
+            </div>
+
         </div>
       </div>
 

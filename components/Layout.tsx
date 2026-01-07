@@ -111,6 +111,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     "/login",
     "/signup",
     "/how-it-works",
+    "/features",
     "/install-extension",
     "/pricing",
     "/404",
@@ -176,6 +177,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const navLinks = [
     { name: "How it Works", path: "/how-it-works" },
+    { name: "Features", path: "/features" },
     { name: "Pricing", path: "/pricing" },
     {
       name: isAuthenticated ? "Dashboard" : "Login",

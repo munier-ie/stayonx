@@ -68,7 +68,7 @@ export function useDashboardData() {
           .select('*')
           .eq('user_id', user.id)
           .order('date', { ascending: false })
-          .limit(30);
+          .limit(365);
 
         if (actError) throw actError;
 

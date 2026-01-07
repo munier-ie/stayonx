@@ -26,6 +26,7 @@ import { Button } from '../components/Button';
 import { Skeleton } from '../components/Skeleton';
 import { BadgeSection } from '../components/BadgeSection';
 import { SpaceActivityFeed } from '../components/SpaceActivityFeed';
+import { CalendarHeatmap } from '../components/CalendarHeatmap';
 
 const MetricTile = ({ title, value, goal, icon: Icon }: { title: string, value: string, goal: string, icon: any }) => {
   const val = parseInt(value);
@@ -482,7 +483,10 @@ export const Dashboard: React.FC = () => {
         </div>
       </BentoCard>
 
-      {/* 4. Bottom Grid: Streaks, Badges, Team */}
+      {/* 4. Calendar Heatmap */}
+      <CalendarHeatmap data={activities} />
+
+      {/* 5. Bottom Grid: Streaks, Badges, Team */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         
         {/* Left Column: Badges */}

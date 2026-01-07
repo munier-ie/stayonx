@@ -16,6 +16,7 @@ import { PrivacyTerms } from './pages/PrivacyTerms';
 import { Advertise } from './pages/Advertise';
 import { AdSubmit } from './pages/AdSubmit';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { Features } from './pages/Features';
 
 const App: React.FC = () => {
   return (
@@ -38,6 +39,7 @@ const App: React.FC = () => {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Landing />} />
+          <Route path="/features" element={<Features />} />
           <Route path="/login" element={<Login />} />
           <Route path="/how-it-works" element={<HowItWorks />} />
           <Route path="/install-extension" element={<InstallExtension />} />

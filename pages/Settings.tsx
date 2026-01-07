@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BentoCard } from '../components/BentoCard';
 import { Button } from '../components/Button';
-import { AlertTriangle, Check } from 'lucide-react';
+import { AlertTriangle, Check, Lock } from 'lucide-react';
 import { supabase } from '../src/lib/supabase';
 import { toast } from 'sonner';
 
@@ -10,10 +10,18 @@ const GoalInput = ({ label, value, onChange, min, max, unit }: any) => {
   const percentage = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      let newValue = parseInt(e.target.value);
+      // Allow empty string temporarily if needed, but for now enforce number
+      let valStr = e.target.value;
+      
+      // If current value is 0 and user types a number, it typically becomes "05".
+      // We want to treat that as "5".
+      if (valStr.length > 1 && valStr.startsWith('0')) {
+          valStr = valStr.substring(1);
+      }
+
+      let newValue = parseInt(valStr);
       if (isNaN(newValue)) newValue = 0;
-      // Allow exceeding max via text input if desired, or clamp it. 
-      // For now, let's clamp only min to 0
+      
       if (newValue < 0) newValue = 0;
       onChange(newValue);
   };
@@ -27,7 +35,7 @@ const GoalInput = ({ label, value, onChange, min, max, unit }: any) => {
                 type="number"
                 min={min}
                 max={999} 
-                value={value}
+                value={value.toString()} // Force string conversion to avoid leading zero issues
                 onChange={handleChange}
                 className="w-12 text-right font-mono text-sm bg-transparent border-none focus:ring-0 p-1 text-gray-900"
             />
@@ -66,6 +74,12 @@ export const Settings: React.FC = () => {
     tweets: 3,
     dms: 10
   });
+  
+  const [lockDuration, setLockDuration] = useState(7);
+  const [lockedUntil, setLockedUntil] = useState<string | null>(null);
+  
+  const isLocked = lockedUntil ? new Date(lockedUntil) > new Date() : false;
+  const canUnlock = false; // Only strictly time-based for now
 
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
@@ -91,6 +105,10 @@ export const Settings: React.FC = () => {
             tweets: profileData.goals.tweet ?? 3,
             dms: profileData.goals.dm ?? 10
           });
+          
+          if (profileData.goals.lock_until) {
+              setLockedUntil(profileData.goals.lock_until);
+          }
         }
       } catch (error) {
         toast.error('Failed to load settings'); // Added toast
@@ -136,8 +154,22 @@ export const Settings: React.FC = () => {
         const goalsToSave = {
             reply: goals.replies,
             tweet: goals.tweets,
-            dm: goals.dms
+            dm: goals.dms,
+            lock_until: isLocked ? lockedUntil : (lockDuration > 0 ? new Date(Date.now() + lockDuration * 86400000).toISOString() : null)
         };
+        // Note: If already locked, we technically shouldn't be here unless saving something else? 
+        // Actually if locked, button is disabled unless we are extending?
+        // Let's assume if it is NOT locked, we are setting a new lock if user clicked save.
+        // Wait, regular save shouldn't enforce lock unless requested?
+        // UI shows "Lock & Save Goals" button when not locked. So we always lock if they click it?
+        // The user request says "when choosing those goals if have to choose x amount of time to lockin".
+        // So yes, saving always implies setting the lock if the duration selector is there?
+        // In my UI design, "Lock & Save" implies locking. 
+        // If they want to update goals WITHOUT locking, we should allow that? 
+        // Requirement: "when choosing those goals if have to choose x amount of time to lockin". 
+        // Implies locking is mandatory for setting goals? Or maybe optional.
+        // Let's make it mandatory if they are setting new goals.
+        // Logic: specific field "lock_until" in goals json.
 
         const { error } = await supabase
             .from('profiles')
@@ -149,8 +181,9 @@ export const Settings: React.FC = () => {
         // Sync with extension
         await syncWithExtension(goals);
 
+        setLockedUntil(goalsToSave.lock_until || null);
         setSavingStatus('saved');
-        toast.success('Goals updated!');
+        toast.success(goalsToSave.lock_until ? 'Goals locked and saved!' : 'Goals updated!');
         setTimeout(() => setSavingStatus('idle'), 2000);
     } catch (err) {
         toast.error('Failed to save goals');
@@ -177,44 +210,85 @@ export const Settings: React.FC = () => {
             <h2 className="text-lg font-medium text-gray-900">Daily Goals</h2>
         </div>
         <BentoCard noPadding className="p-8 space-y-8">
+            <div className="flex justify-between items-center mb-6">
+                <h3 className="text-sm font-medium text-gray-900">Targets</h3>
+                {lockedUntil && new Date(lockedUntil) > new Date() && (
+                    <div className="flex items-center gap-2 px-3 py-1 bg-gray-900 text-white rounded-full text-xs font-medium">
+                         <Lock className="w-3 h-3" />
+                         <span>Locked for {Math.ceil((new Date(lockedUntil).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} more days</span>
+                    </div>
+                )}
+            </div>
+
             <GoalInput 
                 label="Daily Replies" 
                 value={goals.replies} 
                 min={0} max={50} unit="replies"
-                onChange={(val: number) => setGoals({...goals, replies: val})} 
+                onChange={(val: number) => !isLocked && setGoals({...goals, replies: val})} 
+                disabled={isLocked}
             />
             <GoalInput 
                 label="Daily Tweets" 
                 value={goals.tweets} 
                 min={0} max={20} unit="tweets"
-                onChange={(val: number) => setGoals({...goals, tweets: val})} 
+                onChange={(val: number) => !isLocked && setGoals({...goals, tweets: val})} 
+                disabled={isLocked}
             />
             <GoalInput 
                 label="DMs Sent" 
                 value={goals.dms} 
                 min={0} max={30} unit="msgs"
-                onChange={(val: number) => setGoals({...goals, dms: val})} 
+                onChange={(val: number) => !isLocked && setGoals({...goals, dms: val})} 
+                disabled={isLocked}
             />
             
-            <div className="pt-4 border-t border-gray-100 flex justify-end">
+            {/* Lock Configuration */}
+             <div className="pt-6 border-t border-gray-100">
+                <div className="flex justify-between items-center mb-4">
+                    <div>
+                        <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                           <Lock className="w-3.5 h-3.5 text-gray-400" /> Monk Mode
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Lock these goals to build consistency.</p>
+                    </div>
+                    {!isLocked ? (
+                        <div className="flex items-center gap-2">
+                             <input 
+                                type="number" 
+                                min={7}
+                                value={lockDuration}
+                                onChange={(e) => setLockDuration(Math.max(7, parseInt(e.target.value) || 7))}
+                                className="w-16 text-center text-sm border border-gray-200 rounded-md py-1 focus:ring-1 focus:ring-gray-900"
+                             />
+                             <span className="text-xs text-gray-500">days</span>
+                        </div>
+                    ) : (
+                         <div className="text-xs text-gray-400 italic">
+                             Unlocks on {new Date(lockedUntil!).toLocaleDateString()}
+                         </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
                  <Button 
                     onClick={handleSaveGoals} 
-                    disabled={savingStatus === 'saving'}
+                    disabled={savingStatus === 'saving' || (isLocked && !canUnlock)} // canUnlock is false mostly
                     className={`transition-all duration-300 ${savingStatus === 'saved' ? 'bg-gray-900 hover:bg-gray-800 border-transparent text-white' : ''}`}
                  >
-                    {savingStatus === 'saving' ? (
-                        <div className="flex items-center gap-2">
-                             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                             <span>Saving...</span>
-                        </div>
-                    ) : savingStatus === 'saved' ? (
+                    {savingStatus === 'saved' ? (
                         <div className="flex items-center gap-2">
                              <Check className="w-4 h-4" />
                              <span>Saved</span>
                         </div>
+                    ) : isLocked ? (
+                         <div className="flex items-center gap-2 opacity-50">
+                            <Lock className="w-3 h-3" />
+                            <span>Goals Locked</span>
+                         </div>
                     ) : (
                         <div className="flex items-center gap-2">
-                            <span>Update Goals</span>
+                            <span>Lock & Save Goals</span>
                         </div>
                     )}
                  </Button>
@@ -222,20 +296,7 @@ export const Settings: React.FC = () => {
         </BentoCard>
       </section>
 
-      {/* 2. Subscription */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-medium text-gray-900">Subscription</h2>
-        <BentoCard noPadding className="p-8 flex items-center justify-between bg-gradient-to-br from-gray-50 to-white">
-            <div>
-                <div className="flex items-center gap-2 mb-1">
-                    <span className="text-base font-semibold text-gray-900">StayOnX Pro</span>
-                    <span className="px-2 py-0.5 rounded-full bg-gray-900 text-white text-[10px] uppercase font-bold tracking-wide">Active</span>
-                </div>
-                <p className="text-sm text-gray-500">Next billing date: November 24, 2024</p>
-            </div>
-            <Button variant="outline">Manage Billing</Button>
-        </BentoCard>
-      </section>
+
 
       {/* 3. Danger Zone */}
       <section className="pt-8">

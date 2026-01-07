@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Check, X as XIcon, HelpCircle } from 'lucide-react';
 import { Button } from '../components/Button';
 import { toast } from 'sonner';
+import { API_URL } from '../src/config';
 
 export const Advertise: React.FC = () => {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export const Advertise: React.FC = () => {
 
   const checkAvailability = async () => {
     try {
-      const res = await fetch('http://localhost:3050/api/ads/availability');
+      const res = await fetch(`${API_URL}/api/ads/availability`);
       const data = await res.json();
       setSlotsUsed(data.count || 0);
       if (!data.available) {
@@ -36,7 +37,7 @@ export const Advertise: React.FC = () => {
     
     setPurchasing(true);
     try {
-      const res = await fetch('http://localhost:3050/api/payment/create-session', {
+      const res = await fetch(`${API_URL}/api/payment/create-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -229,3 +230,4 @@ export const Advertise: React.FC = () => {
     </div>
   );
 };
+

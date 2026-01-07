@@ -7,6 +7,7 @@ import Cropper from 'react-easy-crop';
 import getCroppedImg from '../src/utils/canvasUtils';
 import { supabase } from '../src/lib/supabase';
 import { Upload, X, ZoomIn } from 'lucide-react';
+import { API_URL } from '../src/config';
 
 export const AdSubmit: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -50,7 +51,7 @@ export const AdSubmit: React.FC = () => {
       try {
         setIsVerifying(true);
         setIsValid(false);
-        const res = await fetch(`http://localhost:3050/api/payment/verify/${paymentId}`);
+        const res = await fetch(`${API_URL}/api/payment/verify/${paymentId}`);
         const data = await res.json();
         
         // Check if ad was already submitted - redirect immediately
@@ -162,7 +163,7 @@ export const AdSubmit: React.FC = () => {
       if (!publicUrl) throw new Error('Image upload failed');
 
       // 2. Submit Data
-      const res = await fetch('http://localhost:3050/api/ads/submit', {
+      const res = await fetch(`${API_URL}/api/ads/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, imageUrl: publicUrl, paymentId })

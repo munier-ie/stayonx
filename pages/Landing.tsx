@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BentoCard } from '../components/BentoCard';
 import { Button } from '../components/Button';
-import { Check, Users, Star, Twitter, Chrome, Activity, Crown, PenTool, Reply, Play } from 'lucide-react';
+import { Check, Users, Star, Twitter, Chrome, Activity, Crown, PenTool, Reply, Play, ChevronDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 // --- Visual Components ---
@@ -143,6 +143,33 @@ const testimonials = [
   }
 ];
 
+const faqs = [
+  {
+    question: "Why do I keep failing to stay consistent on X?",
+    answer: "Most people fail because there's no real consequence for skipping a day. Without accountability, it's easy to let 'one missed day' turn into weeks of silence. StayOnX solves this by tying your streak to your team—if you skip, everyone loses. The social pressure is a powerful motivator."
+  },
+  {
+    question: "What exactly does StayOnX do?",
+    answer: "StayOnX is a Chrome extension that tracks your daily activity on X (tweets, replies, DMs). It counts your streak, shows your progress, and lets you join 'Spaces'—small accountability groups where everyone's streak depends on each other. Think of it as a fitness app, but for your X presence."
+  },
+  {
+    question: "Is my X account safe? Do you have access to my password?",
+    answer: "Absolutely safe. We never ask for or store your X password. The extension reads your public activity directly from the page you're viewing. We don't have the ability to post on your behalf, access your DMs content, or perform any actions. Your security is paramount."
+  },
+  {
+    question: "How does the team accountability feature work?",
+    answer: "You can create or join a 'Space' with 2-10 other people. Each member must complete their daily goal (e.g., 5 replies) to keep the group's streak alive. If just one person misses their goal, the entire team's streak resets to zero. It sounds brutal, but it works."
+  },
+  {
+    question: "What if I need to take a break? Will I lose my streak?",
+    answer: "Pro members get 'Streak Repair Tokens' which can be used to protect your streak for a day. You can use them for planned breaks, emergencies, or those days when life just gets in the way. It's our way of keeping the system fair but flexible."
+  },
+  {
+    question: "Is StayOnX really free?",
+    answer: "Yes! The core tracking features, personal dashboard, and basic stats are free forever. We offer a Pro tier with advanced features like unlimited Spaces, detailed analytics, and Streak Repair Tokens for power users who want to level up. We're currently offering Pro for free for a limited time."
+  }
+];
+
 const heroCards = [
     { icon: <svg viewBox="0 0 24 24" className="w-10 h-10 fill-gray-900"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>, label: "X" },
     { icon: <PenTool className="w-10 h-10 text-gray-900 stroke-[1.5px]" />, label: "Tweet" },
@@ -157,6 +184,7 @@ export const Landing: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [activeCard, setActiveCard] = useState(0);
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
   // Typing Effect Logic
   useEffect(() => {
@@ -240,15 +268,17 @@ export const Landing: React.FC = () => {
                   [{displayedText}<span className="animate-pulse">|</span>]
                 </span>
               </h1>
-              <p className="text-xl text-gray-500 font-light max-w-lg leading-relaxed">
-                The operating system for your X performance. Track replies, maintain streaks, and lock in daily goals with your team.
+              <p className="text-lg text-gray-500 font-light max-w-lg leading-relaxed">
+                The Chrome extension that gamifies your X consistency. Join a <strong>Space</strong>, climb the <strong>Leaderboard</strong>, and <strong>Lock In</strong> your daily goals.
+                <br/><br/>
+                The stakes are high: <span className="text-red-600 font-medium">If you (or a teammate) miss a day, everyone goes back to zero.</span>
               </p>
               <div className="flex gap-4">
                 <Button 
                   onClick={() => navigate('/install-extension')}
                   className="bg-gray-900 text-white hover:bg-gray-800 rounded-none md:rounded-sm px-8 py-4 h-auto text-lg hover:scale-[1.02] transition-transform duration-300 shadow-xl shadow-gray-200"
                 >
-                  Add to Chrome
+                  Install Extension
                 </Button>
               </div>
               <div className="flex items-center gap-4 text-sm text-gray-400">
@@ -533,7 +563,56 @@ export const Landing: React.FC = () => {
         </div>
       </section>
 
-      {/* 5. Final CTA */}
+      {/* 5. FAQ Section */}
+      <section className="py-24 bg-[#FAFAFA] border-t border-gray-100/50">
+        <div className="max-w-3xl mx-auto px-6 w-full">
+          <div className="text-center mb-16 scroll-trigger opacity-0 translate-y-8">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Frequently Asked Questions</h3>
+            <h2 className="text-3xl font-light text-gray-900">Everything you need to know</h2>
+          </div>
+          
+          <div className="space-y-4 scroll-trigger opacity-0 translate-y-8">
+            {faqs.map((faq, index) => (
+              <div 
+                key={index}
+                className="bg-white rounded-xl border border-gray-100 overflow-hidden transition-all duration-300 hover:border-gray-200"
+              >
+                <button
+                  onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
+                  className="w-full px-6 py-5 flex items-center justify-between text-left transition-colors"
+                >
+                  <span className="text-base font-medium text-gray-900 pr-4">{faq.question}</span>
+                  <ChevronDown 
+                    className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300 ${
+                      expandedFaq === index ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                <div 
+                  className={`overflow-hidden transition-all duration-300 ease-out ${
+                    expandedFaq === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                  }`}
+                >
+                  <div className="px-6 pb-5 pt-0">
+                    <p className="text-gray-500 leading-relaxed">{faq.answer}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="text-center mt-12 scroll-trigger opacity-0 translate-y-8">
+            <p className="text-gray-400 text-sm">
+              Still have questions?{' '}
+              <a href="mailto:hey@stayonx.xyz" className="text-gray-900 font-medium hover:underline underline-offset-4">
+                Get in touch
+              </a>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. Final CTA */}
       <section className="py-32 bg-white flex flex-col items-center justify-center relative">
           <div className="scroll-trigger opacity-0 translate-y-8 transition-all duration-700 ease-out-expo text-center">
               <div className="mb-8 flex justify-center">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BentoCard } from '../components/BentoCard';
 import { Button } from '../components/Button';
-import { Users, Lock, Unlock, TrendingUp, Plus, Search, XCircle, ArrowLeft, LogOut, Check, X, Copy, Crown, MessageSquare, PenTool, Send, Loader2, Trash2 } from 'lucide-react';
+import { Users, Lock, Unlock, TrendingUp, Plus, Search, XCircle, ArrowLeft, LogOut, Check, X, Copy, Crown, MessageSquare, PenTool, Send, Loader2, Trash2, Calendar, AlertTriangle } from 'lucide-react';
 import { supabase } from '../src/lib/supabase';
 import { toast } from 'sonner';
 
@@ -24,11 +24,13 @@ interface Space {
   streak: number;
   isPrivate: boolean;
   isJoined: boolean;
-  goals: { tweets: number; replies: number; dms: number };
+  goals: { tweets: number; replies: number; dms: number; lock_duration?: number };
   creatorId?: string;
   members?: Member[];
   visibility?: string; // DB field helper
   original_id?: string; // DB UUID helper
+  lockDuration?: number;
+  joinedAt?: string;
 }
 
 const categories = ['All', 'Creators', 'Business', 'Writing', 'Dev', 'Health', 'Design'];
@@ -53,9 +55,14 @@ export const Spaces: React.FC = () => {
 
   // Invite Code State
   const [generatingCode, setGeneratingCode] = useState(false);
+  
+  // Join Modal State
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [spaceToJoin, setSpaceToJoin] = useState<Space | null>(null);
 
   // Form State
   const [newSpaceName, setNewSpaceName] = useState('');
+  const [lockDuration, setLockDuration] = useState(7);
   const [isPrivate, setIsPrivate] = useState(false);
   const [goalConfig, setGoalConfig] = useState({
       tweets: { enabled: true, value: 1 },
@@ -83,14 +90,21 @@ export const Spaces: React.FC = () => {
 
           if (error) throw error;
 
-          // Get My Memberships
+          // Get My Memberships (with created_at for lock check)
           let mySpaceIds: string[] = [];
+          
+          let myMembershipsMap: {[key: string]: string} = {};
+
           if (user) {
               const { data: memberships } = await supabase
                   .from('members')
-                  .select('space_id')
+                  .select('space_id, created_at')
                   .eq('user_id', user.id);
-              mySpaceIds = memberships?.map(m => m.space_id) || [];
+                  
+              memberships?.forEach(m => {
+                  myMembershipsMap[m.space_id] = m.created_at;
+                  mySpaceIds.push(m.space_id);
+              });
           }
 
           // Transform DB spaces to UI Space interface
@@ -106,8 +120,11 @@ export const Spaces: React.FC = () => {
               goals: { 
                   tweets: s.goals?.tweet || 0, 
                   replies: s.goals?.reply || 0, 
-                  dms: s.goals?.dm || 0 
+                  dms: s.goals?.dm || 0,
+                  lock_duration: s.goals?.lock_duration
               },
+              lockDuration: s.goals?.lock_duration || 0,
+              joinedAt: myMembershipsMap[s.id],
               creatorId: s.owner_id
           })) || [];
 
@@ -221,6 +238,7 @@ export const Spaces: React.FC = () => {
             tweet: goalConfig.tweets.enabled ? goalConfig.tweets.value : 0,
             reply: goalConfig.replies.enabled ? goalConfig.replies.value : 0,
             dm: goalConfig.dms.enabled ? goalConfig.dms.value : 0,
+            lock_duration: lockDuration
         };
 
         const { data: newSpace, error } = await supabase.from('spaces').insert({
@@ -275,6 +293,20 @@ export const Spaces: React.FC = () => {
     setViewMode('detail');
   };
 
+  const handleJoinSpaceInit = (space: Space) => {
+      if (joinedSpace) {
+        alert("You can only join one space at a time. Please leave your current space first.");
+        return;
+      }
+      
+      if (space.lockDuration && space.lockDuration > 0) {
+          setSpaceToJoin(space);
+          setShowJoinModal(true);
+      } else {
+          handleJoinSpace(space.id);
+      }
+  }
+
   const handleJoinSpace = async (spaceId: number | string) => {
     // Constraint: Single Space
     if (joinedSpace) {
@@ -301,9 +333,11 @@ export const Spaces: React.FC = () => {
         toast.success("Joined!");
         
         // Update local state
-        setSpaces(spaces.map(s => s.id === spaceId ? { ...s, isJoined: true } : s));
+        setSpaces(spaces.map(s => s.id === spaceId ? { ...s, isJoined: true, joinedAt: new Date().toISOString() } : s));
         setSelectedSpaceId(spaceId);
         loadMemberDetails(spaceId.toString());
+        setShowJoinModal(false);
+        setSpaceToJoin(null);
         setViewMode('detail');
         setActiveTab('my_spaces');
         
@@ -318,6 +352,16 @@ export const Spaces: React.FC = () => {
 
   const openQuitModal = (space: Space) => {
       setSpaceToQuit(space);
+      // Check lock duration
+      if (space.lockDuration && space.lockDuration > 0 && space.joinedAt) {
+          const joinedDate = new Date(space.joinedAt);
+          const unlockDate = new Date(joinedDate.getTime() + space.lockDuration * 86400000);
+          
+          if (new Date() < unlockDate) {
+               toast.error(`You committed to this space until ${unlockDate.toLocaleDateString()}`);
+               return;
+          }
+      }
       setShowQuitModal(true);
   }
 
@@ -557,6 +601,14 @@ export const Spaces: React.FC = () => {
                               {space.goals.dms > 0 && <div className="flex items-center gap-1"><Send className="w-3 h-3" /> {space.goals.dms}</div>}
                               <span className="text-gray-300">|</span>
                               <span>Daily Goals</span>
+                              {space.lockDuration && space.lockDuration > 0 && (
+                                  <>
+                                     <span className="text-gray-300">|</span>
+                                     <div className="flex items-center gap-1 text-gray-900 font-medium">
+                                        <Lock className="w-3 h-3" /> {space.lockDuration}d Lock
+                                     </div>
+                                  </>
+                              )}
                           </div>
                       </div>
                       
@@ -606,6 +658,15 @@ export const Spaces: React.FC = () => {
                             )}
                        </div>
                   </div>
+                  
+                  {/* Join Button (if not joined and not creator) */}
+                  {!space.isJoined && !isCreator && (
+                     <div className="mt-8 pt-8 border-t border-gray-100 flex justify-end">
+                         <Button onClick={() => handleJoinSpaceInit(space)} className="px-8">
+                             Join Space
+                         </Button>
+                     </div>
+                  )}
               </BentoCard>
 
               {/* Members List */}
@@ -708,6 +769,32 @@ export const Spaces: React.FC = () => {
                           <GoalToggle label="DMs" icon={Send} config={goalConfig} type="dms" />
                       </div>
                       <p className="text-xs text-gray-400">Members must complete all enabled goals to maintain the streak.</p>
+                  </div>
+
+                  {/* Lock Duration */}
+                  <div className="space-y-4 pt-4 border-t border-gray-100">
+                       <label className="text-xs font-medium text-gray-500 uppercase tracking-wide flex items-center gap-2">
+                           <Lock className="w-3 h-3" /> Commitment Duration (Minimum 7 Days)
+                       </label>
+                       <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-4">
+                           <div className="p-2 bg-white rounded-md border border-gray-100 shadow-sm">
+                               <Calendar className="w-5 h-5 text-gray-900" />
+                           </div>
+                           <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-900 mb-1">Lock-in Period</p>
+                                <p className="text-xs text-gray-500">Members cannot leave until they complete this duration.</p>
+                           </div>
+                           <div className="flex items-center gap-2">
+                                <input 
+                                    type="number" 
+                                    min={7}
+                                    value={lockDuration}
+                                    onChange={(e) => setLockDuration(Math.max(7, parseInt(e.target.value)||7))}
+                                    className="w-20 text-center text-lg font-medium border border-gray-200 rounded-lg py-1 focus:ring-1 focus:ring-gray-900"
+                                />
+                                <span className="text-sm text-gray-500 font-medium">days</span>
+                           </div>
+                       </div>
                   </div>
 
                   {/* Visibility */}

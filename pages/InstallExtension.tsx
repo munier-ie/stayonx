@@ -1,18 +1,82 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../components/Button';
 import { Puzzle, CheckCircle2, ArrowRight } from 'lucide-react';
+import { supabase } from '../src/lib/supabase';
+
+declare global {
+  interface Window {
+    stayonxLoaded?: boolean;
+  }
+}
 
 export const InstallExtension: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [hasExtension, setHasExtension] = useState(false);
 
-  const handleConnect = () => {
+  // Check for Extension presence
+  useEffect(() => {
+    const checkExtension = () => {
+        const isInstalled = document.documentElement.getAttribute("data-stayonx-extension") === "true";
+        if (isInstalled) {
+            setHasExtension(true);
+            if (currentStep < 2) setCurrentStep(3); // Skip to connect step if already installed
+        }
+    };
+
+    // Immediate check
+    checkExtension();
+
+    // Listener for late load
+    const handler = () => checkExtension();
+    window.addEventListener("STAYONX_EXTENSION_LOADED", handler);
+    
+    // Polling fallback (common pattern for extension detection races)
+    const interval = setInterval(checkExtension, 1000);
+
+    return () => {
+        window.removeEventListener("STAYONX_EXTENSION_LOADED", handler);
+        clearInterval(interval);
+    };
+  }, [currentStep]);
+
+  // Check Auth State on Mount
+  useEffect(() => {
+     supabase.auth.getSession().then(({ data: { session } }) => {
+         if (session) {
+             setIsConnected(true);
+         }
+     });
+
+     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+         setIsConnected(!!session);
+     });
+
+     return () => subscription.unsubscribe();
+  }, []);
+
+  const handleConnect = async () => {
     setIsConnecting(true);
-    setTimeout(() => {
-        setIsConnecting(false);
-        setIsConnected(true);
-    }, 2000);
+    // Redirect to login if not connected, else just simulate "Connecting" delay for valid UX feeling or re-verify
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        window.location.href = '/#/login'; // Redirect to login page
+    } else {
+        // Already logged in, just sync
+        setTimeout(() => {
+            setIsConnecting(false);
+            setIsConnected(true);
+            // Trigger a manual sync?
+             window.postMessage({ type: 'STAYONX_REFRESH_SYNC' }, '*');
+        }, 1000);
+    }
+  };
+
+  const openChromeStore = () => {
+      window.open('https://chromewebstore.google.com/detail/hlloadddbpcjiddbgbejljcmlijcdjaf?utm_source=item-share-cb', '_blank');
+      // Optimistically move to step 2 after click, as we can't detect install via click
+      setCurrentStep(2);
   };
 
   return (
@@ -24,8 +88,8 @@ export const InstallExtension: React.FC = () => {
                 
                 {/* Step 1 */}
                 <div className={`relative transition-opacity duration-500 ${currentStep >= 1 ? 'opacity-100' : 'opacity-40'}`}>
-                    <div className={`absolute -left-[41px] top-0 w-6 h-6 rounded-full border-2 flex items-center justify-center bg-white z-10 ${currentStep >= 1 ? 'border-black' : 'border-gray-200'}`}>
-                        <span className={`text-xs font-bold ${currentStep >= 1 ? 'text-black' : 'text-gray-300'}`}>1</span>
+                    <div className={`absolute -left-[41px] top-0 w-6 h-6 rounded-full border-2 flex items-center justify-center bg-white z-10 ${currentStep >= 1 ? hasExtension ? 'border-green-500 bg-green-50' : 'border-black' : 'border-gray-200'}`}>
+                        {hasExtension ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <span className={`text-xs font-bold ${currentStep >= 1 ? 'text-black' : 'text-gray-300'}`}>1</span>}
                     </div>
                     
                     <h3 className="text-lg font-medium text-gray-900 mb-4">Add to Chrome</h3>
@@ -36,10 +100,16 @@ export const InstallExtension: React.FC = () => {
                             </div>
                             <div>
                                 <div className="font-medium text-gray-900">StayOnX Extension</div>
-                                <div className="text-xs text-gray-500">version 1.0.4 • Productivity</div>
+                                <div className="text-xs text-gray-500">Free • Productivity • Chrome Web Store</div>
                             </div>
                         </div>
-                        <Button fullWidth onClick={() => setCurrentStep(2)}>Open Chrome Web Store</Button>
+                        {hasExtension ? (
+                            <div className="flex items-center gap-2 text-green-700 font-medium bg-green-50 p-3 rounded-lg border border-green-100 justify-center">
+                                <CheckCircle2 className="w-4 h-4" /> Installed successfully
+                            </div>
+                        ) : (
+                            <Button fullWidth onClick={openChromeStore}>Open Chrome Web Store</Button>
+                        )}
                     </div>
                 </div>
 
@@ -65,15 +135,15 @@ export const InstallExtension: React.FC = () => {
                              </div>
                          </div>
                          <div className="mt-4 text-center">
-                             <span className="text-xs text-gray-400">Click to confirm pin</span>
+                             <span className="text-xs text-gray-400">Click to confirm done</span>
                          </div>
                     </div>
                 </div>
 
                 {/* Step 3 */}
                 <div className={`relative transition-opacity duration-500 ${currentStep >= 3 ? 'opacity-100' : 'opacity-40'}`}>
-                    <div className={`absolute -left-[41px] top-0 w-6 h-6 rounded-full border-2 flex items-center justify-center bg-white z-10 ${currentStep >= 3 ? 'border-black' : 'border-gray-200'}`}>
-                         <span className={`text-xs font-bold ${currentStep >= 3 ? 'text-black' : 'text-gray-300'}`}>3</span>
+                    <div className={`absolute -left-[41px] top-0 w-6 h-6 rounded-full border-2 flex items-center justify-center bg-white z-10 ${currentStep >= 3 ? isConnected ? 'border-green-500 bg-green-50' : 'border-black' : 'border-gray-200'}`}>
+                         {isConnected ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <span className={`text-xs font-bold ${currentStep >= 3 ? 'text-black' : 'text-gray-300'}`}>3</span>}
                     </div>
                     
                     <h3 className="text-lg font-medium text-gray-900 mb-4">Connect Account</h3>

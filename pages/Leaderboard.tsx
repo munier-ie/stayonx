@@ -19,6 +19,7 @@ export const Leaderboard: React.FC = () => {
             const { data: streaksData, error: streaksError } = await supabase
                 .from('streaks')
                 .select('current_streak, longest_streak, updated_at, profiles(twitter_handle, avatar_url, goals)')
+                .gt('current_streak', 0) // Filter out 0 streaks
                 .order('current_streak', { ascending: false })
                 .limit(50);
             
@@ -41,6 +42,7 @@ export const Leaderboard: React.FC = () => {
                  .from('spaces')
                  .select('*, members(count)') // Added members(count)
                  .eq('visibility', 'public')
+                 .gt('streak_count', 0) // Filter out 0 streaks
                  .order('streak_count', { ascending: false })
                  .limit(50);
 
