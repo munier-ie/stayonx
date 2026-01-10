@@ -1012,37 +1012,56 @@ export const Spaces: React.FC = () => {
                         </div>
 
                         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                            <div className="flex items-center gap-4 text-sm text-gray-500">
-                                <div className="flex items-center gap-1.5" title="Members">
-                                    <Users className="w-3.5 h-3.5 text-gray-400" />
-                                    <span className="font-medium text-gray-700">{space.memberCount}</span>
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-4 text-sm text-gray-500">
+                                    <div className="flex items-center gap-1.5" title="Members">
+                                        <Users className="w-3.5 h-3.5 text-gray-400" />
+                                        <span className="font-medium text-gray-700">{space.memberCount}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5" title="Current Streak">
+                                        <TrendingUp className="w-3.5 h-3.5 text-gray-400" />
+                                        <span className="font-medium text-gray-700">{space.streak}d</span>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-1.5" title="Current Streak">
-                                    <TrendingUp className="w-3.5 h-3.5 text-gray-400" />
-                                    <span className="font-medium text-gray-700">{space.streak}d</span>
+                                <div className="flex items-center gap-3 text-xs text-gray-400">
+                                    {space.goals.tweets > 0 && <span className="flex items-center gap-1"><PenTool className="w-3 h-3" /> {space.goals.tweets}</span>}
+                                    {space.goals.replies > 0 && <span className="flex items-center gap-1"><MessageSquare className="w-3 h-3" /> {space.goals.replies}</span>}
+                                    {space.goals.dms > 0 && <span className="flex items-center gap-1"><Send className="w-3 h-3" /> {space.goals.dms}</span>}
                                 </div>
                             </div>
-                            {space.isJoined ? (
-                                 <Button 
-                                    variant="secondary" 
-                                    size="sm" 
-                                    className="opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0"
-                                    onClick={() => handleViewSpace(space)}
-                                >
-                                    View
-                                </Button>
-                            ) : (
-                                <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0"
-                                    disabled={!!joinedSpace}
-                                    title={joinedSpace ? "You must leave your current space first" : "Join Space"}
-                                    onClick={() => handleJoinSpace(space.id)}
-                                >
-                                    Join
-                                </Button>
-                            )}
+
+                            <div className="flex items-center gap-2">
+                                {space.creatorId === currentUser?.id && (
+                                     <button 
+                                        onClick={(e) => { e.stopPropagation(); openDeleteModal(space); }}
+                                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                        title="Delete Space"
+                                     >
+                                         <Trash2 className="w-4 h-4" />
+                                     </button>
+                                )}
+                                {space.isJoined ? (
+                                     <Button 
+                                        variant="secondary" 
+                                        size="sm" 
+                                        className="opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0"
+                                        onClick={() => handleViewSpace(space)}
+                                    >
+                                        View
+                                    </Button>
+                                ) : (
+                                    <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0"
+                                        disabled={!!joinedSpace}
+                                        title={joinedSpace ? "You must leave your current space first" : "Join Space"}
+                                        onClick={() => handleJoinSpace(space.id)}
+                                    >
+                                        Join
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </BentoCard>
                 ))}
