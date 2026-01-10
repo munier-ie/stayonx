@@ -1,4 +1,52 @@
 import React, { useState, useEffect } from 'react';
+
+// Moved GoalToggle outside
+const GoalToggle = ({
+    label,
+    icon: Icon,
+    state,
+    onToggle,
+    onChange
+}: {
+    label: string,
+    icon: any,
+    state: { enabled: boolean, value: number },
+    onToggle: () => void,
+    onChange: (val: number) => void
+}) => {
+    return (
+        <div className={`p-4 rounded-xl border transition-all duration-200 ${state.enabled ? 'border-gray-900 bg-gray-50' : 'border-gray-200 bg-white opacity-60 hover:opacity-100'}`}>
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                    <div className={`p-1.5 rounded-md ${state.enabled ? 'bg-white shadow-sm' : 'bg-gray-100'}`}>
+                        <Icon className="w-4 h-4 text-gray-900" />
+                    </div>
+                    <span className="font-medium text-sm text-gray-900">{label}</span>
+                </div>
+                <div
+                    onClick={onToggle}
+                    className={`w-10 h-6 rounded-full p-1 cursor-pointer transition-colors ${state.enabled ? 'bg-gray-900' : 'bg-gray-200'}`}
+                >
+                    <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${state.enabled ? 'translate-x-4' : 'translate-x-0'}`} />
+                </div>
+            </div>
+
+            {state.enabled && (
+                <div>
+                    <input
+                        type="number"
+                        min="1"
+                        value={state.value} // Controlled input
+                        onChange={(e) => onChange(parseInt(e.target.value) || 0)}
+                        className="w-full text-center text-2xl font-light bg-white border border-gray-200 rounded-md py-2 focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
+                    />
+                    <div className="text-center text-[10px] text-gray-400 mt-2 uppercase tracking-wide font-medium">Daily Target</div>
+                </div>
+            )}
+        </div>
+    )
+}
+
 import { BentoCard } from '../components/BentoCard';
 import { Button } from '../components/Button';
 import { Users, Lock, Unlock, TrendingUp, Plus, Search, XCircle, ArrowLeft, LogOut, Check, X, Copy, Crown, MessageSquare, PenTool, Send, Loader2, Trash2, Calendar, AlertTriangle } from 'lucide-react';
@@ -523,45 +571,7 @@ export const Spaces: React.FC = () => {
 
   // --- Sub-Components ---
 
-  const GoalToggle = ({ 
-      label, 
-      icon: Icon, 
-      config, 
-      type 
-  }: { label: string, icon: any, config: any, type: 'tweets'|'replies'|'dms' }) => {
-      const state = config[type];
-      return (
-          <div className={`p-4 rounded-xl border transition-all duration-200 ${state.enabled ? 'border-gray-900 bg-gray-50' : 'border-gray-200 bg-white opacity-60 hover:opacity-100'}`}>
-              <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                      <div className={`p-1.5 rounded-md ${state.enabled ? 'bg-white shadow-sm' : 'bg-gray-100'}`}>
-                        <Icon className="w-4 h-4 text-gray-900" />
-                      </div>
-                      <span className="font-medium text-sm text-gray-900">{label}</span>
-                  </div>
-                  <div 
-                    onClick={() => setGoalConfig({ ...config, [type]: { ...state, enabled: !state.enabled } })}
-                    className={`w-10 h-6 rounded-full p-1 cursor-pointer transition-colors ${state.enabled ? 'bg-gray-900' : 'bg-gray-200'}`}
-                  >
-                      <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${state.enabled ? 'translate-x-4' : 'translate-x-0'}`} />
-                  </div>
-              </div>
-              
-              {state.enabled && (
-                  <div>
-                      <input 
-                        type="number" 
-                        min="1"
-                        value={state.value}
-                        onChange={(e) => setGoalConfig({ ...config, [type]: { ...state, value: parseInt(e.target.value) || 0 } })}
-                        className="w-full text-center text-2xl font-light bg-white border border-gray-200 rounded-md py-2 focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
-                      />
-                      <div className="text-center text-[10px] text-gray-400 mt-2 uppercase tracking-wide font-medium">Daily Target</div>
-                  </div>
-              )}
-          </div>
-      )
-  }
+
 
   // --- Views ---
 
@@ -764,9 +774,27 @@ export const Spaces: React.FC = () => {
                   <div className="space-y-4">
                       <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Daily Goals (Optional)</label>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <GoalToggle label="Tweets" icon={PenTool} config={goalConfig} type="tweets" />
-                          <GoalToggle label="Replies" icon={MessageSquare} config={goalConfig} type="replies" />
-                          <GoalToggle label="DMs" icon={Send} config={goalConfig} type="dms" />
+                          <GoalToggle 
+                              label="Tweets" 
+                              icon={PenTool} 
+                              state={goalConfig.tweets}
+                              onToggle={() => setGoalConfig({ ...goalConfig, tweets: { ...goalConfig.tweets, enabled: !goalConfig.tweets.enabled } })}
+                              onChange={(val) => setGoalConfig({ ...goalConfig, tweets: { ...goalConfig.tweets, value: val } })}
+                          />
+                          <GoalToggle 
+                              label="Replies" 
+                              icon={MessageSquare} 
+                              state={goalConfig.replies}
+                              onToggle={() => setGoalConfig({ ...goalConfig, replies: { ...goalConfig.replies, enabled: !goalConfig.replies.enabled } })}
+                              onChange={(val) => setGoalConfig({ ...goalConfig, replies: { ...goalConfig.replies, value: val } })}
+                          />
+                          <GoalToggle 
+                              label="DMs" 
+                              icon={Send} 
+                              state={goalConfig.dms}
+                              onToggle={() => setGoalConfig({ ...goalConfig, dms: { ...goalConfig.dms, enabled: !goalConfig.dms.enabled } })}
+                              onChange={(val) => setGoalConfig({ ...goalConfig, dms: { ...goalConfig.dms, value: val } })}
+                          />
                       </div>
                       <p className="text-xs text-gray-400">Members must complete all enabled goals to maintain the streak.</p>
                   </div>
@@ -836,7 +864,7 @@ export const Spaces: React.FC = () => {
     <div className="relative">
       {/* Top Level Modal */}
       {showQuitModal && spaceToQuit && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
               <div 
                 className="absolute inset-0 bg-gray-900/20 backdrop-blur-sm transition-opacity" 
                 onClick={() => setShowQuitModal(false)}
@@ -864,7 +892,7 @@ export const Spaces: React.FC = () => {
 
       {/* Delete Space Modal */}
       {showDeleteModal && spaceToDelete && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
               <div 
                 className="absolute inset-0 bg-gray-900/20 backdrop-blur-sm transition-opacity" 
                 onClick={() => setShowDeleteModal(false)}
