@@ -113,7 +113,7 @@ export const Advertise: React.FC = () => {
                 </p>
 
                 <div className="flex items-baseline justify-center gap-1 mb-8">
-                  <span className="text-5xl font-semibold text-gray-900 tracking-tight">$50</span>
+                  <span className="text-5xl font-semibold text-gray-900 tracking-tight">$19.99</span>
                   <span className="text-lg text-gray-400">/mo</span>
                 </div>
 
