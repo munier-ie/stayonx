@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 // Moved GoalToggle outside
 const GoalToggle = ({
@@ -475,30 +476,45 @@ export const Spaces: React.FC = () => {
 
          const spaceId = spaceToDelete.id;
 
-         // Delete all activities for users in this space
-         const { data: memberIds } = await supabase
-             .from('members')
-             .select('user_id')
-             .eq('space_id', spaceId);
-         
-         if (memberIds && memberIds.length > 0) {
-             const userIds = memberIds.map(m => m.user_id);
-             // Delete activities for these users (space-related)
-             await supabase
-                 .from('activities')
-                 .delete()
-                 .in('user_id', userIds);
+         // 1. Delete invites (Space specific)
+         const { error: inviteError } = await supabase.from('space_invites').delete().eq('space_id', spaceId);
+         if (inviteError) { 
+             console.error("Invite delete failed", inviteError);
+             throw new Error(`Failed to delete invites: ${inviteError.message}`);
          }
 
-         // Delete all streaks for this space
-         await supabase.from('streaks').delete().eq('space_id', spaceId);
+         // 2. Delete space requests (join requests)
+         const { error: reqError } = await supabase.from('space_requests').delete().eq('space_id', spaceId);
+         if (reqError && reqError.code !== '42P01') { // Ignore if table doesn't exist
+             console.error("Space Request delete failed", reqError);
+             throw new Error(`Failed to delete requests: ${reqError.message}`);
+         }
 
-         // Delete all members from this space
-         await supabase.from('members').delete().eq('space_id', spaceId);
+         // 3. Delete space activity logs (Space specific events)
+         const { error: logError } = await supabase.from('space_activity').delete().eq('space_id', spaceId);
+         if (logError) { 
+             console.error("Log delete failed", logError);
+             // Don't block on this if strict RLS issue, but warn
+         }
+
+         // 4. Delete all members from this space
+         const { error: memberError } = await supabase.from('members').delete().eq('space_id', spaceId);
+         if (memberError) { 
+             console.error("Member delete failed", memberError);
+             throw new Error(`Failed to delete members: ${memberError.message}`);
+         }
 
          // Delete the space itself
-         const { error } = await supabase.from('spaces').delete().eq('id', spaceId);
-         if (error) throw error;
+         const { error, data } = await supabase.from('spaces').delete().eq('id', spaceId).select();
+         
+         if (error) {
+             console.error("Space delete error", error);
+             throw error;
+         }
+
+         if (!data || data.length === 0) {
+             throw new Error("Space could not be deleted. Logic mismatch or permission denied or active constraints (check console for previous errors).");
+         }
          
          // Update local state - remove the space
          setSpaces(spaces.filter(s => s.id !== spaceId));
@@ -863,7 +879,7 @@ export const Spaces: React.FC = () => {
   return (
     <div className="relative">
       {/* Top Level Modal */}
-      {showQuitModal && spaceToQuit && (
+      {showQuitModal && spaceToQuit && createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
               <div 
                 className="absolute inset-0 bg-gray-900/20 backdrop-blur-sm transition-opacity" 
@@ -887,11 +903,12 @@ export const Spaces: React.FC = () => {
                       <Button variant="danger" onClick={handleQuitSpace} disabled={submitting}>Leave Space</Button>
                   </div>
               </div>
-          </div>
+          </div>,
+          document.body
       )}
 
       {/* Delete Space Modal */}
-      {showDeleteModal && spaceToDelete && (
+      {showDeleteModal && spaceToDelete && createPortal(
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
               <div 
                 className="absolute inset-0 bg-gray-900/20 backdrop-blur-sm transition-opacity" 
@@ -923,7 +940,8 @@ export const Spaces: React.FC = () => {
                       </Button>
                   </div>
               </div>
-          </div>
+          </div>,
+          document.body
       )}
 
       {viewMode === 'detail' && <SpaceDetail />}
